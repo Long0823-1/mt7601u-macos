@@ -1,0 +1,6 @@
+#!/bin/bash
+# stop an older copy before the files are replaced
+launchctl bootout system /Library/LaunchDaemons/local.mt7601ud.plist 2>/dev/null
+USER_NAME="$(stat -f %Su /dev/console)"
+[ -n "$USER_NAME" ] && launchctl bootout "gui/$(id -u "$USER_NAME")/local.mt7601u.wifi" 2>/dev/null
+exit 0

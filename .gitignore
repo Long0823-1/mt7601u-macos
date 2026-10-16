@@ -1,0 +1,11 @@
+# build products
+port/build/
+port/mt7601ud
+menubar/build/
+installer/build/
+dist/
+*.o
+*.d
+# firmware is fetched by scripts/fetch-firmware.sh (linux-firmware license)
+mt7601u/mt7601u.bin
+.DS_Store

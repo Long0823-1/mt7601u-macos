@@ -1,0 +1,17 @@
+#!/bin/bash
+# Runs as root at the end of the installation.
+PLIST=/Library/LaunchDaemons/local.mt7601ud.plist
+chown root:wheel "$PLIST" /Library/LaunchAgents/local.mt7601u.wifi.plist
+chmod 644 "$PLIST" /Library/LaunchAgents/local.mt7601u.wifi.plist
+chmod 755 /usr/local/libexec/mt7601u/mt7601ud /usr/local/bin/mt7601u-wifi /usr/local/libexec/mt7601u/uninstall.sh
+mkdir -p /var/db/mt7601ud
+launchctl bootout system "$PLIST" 2>/dev/null
+launchctl bootstrap system "$PLIST"
+# start the menu bar app for the logged-in user right away (it starts at every login from now on)
+USER_NAME="$(stat -f %Su /dev/console)"
+if [ -n "$USER_NAME" ] && [ "$USER_NAME" != "root" ]; then
+  UID_N="$(id -u "$USER_NAME")"
+  launchctl bootout "gui/$UID_N/local.mt7601u.wifi" 2>/dev/null
+  launchctl bootstrap "gui/$UID_N" /Library/LaunchAgents/local.mt7601u.wifi.plist 2>/dev/null
+fi
+exit 0
