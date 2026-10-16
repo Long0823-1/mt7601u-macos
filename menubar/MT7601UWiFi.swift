@@ -195,7 +195,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         rebuildMenu()
         poll()
         loadNetworks()
-        if Date().timeIntervalSince(lastScan) > 20 { requestScan() }
+        // scanning leaves the channel for a while: do it automatically only when not connected
+        if status.state != "connected" && Date().timeIntervalSince(lastScan) > 20 { requestScan() }
     }
 
     func menuDidClose(_ menu: NSMenu) { menuOpen = false }

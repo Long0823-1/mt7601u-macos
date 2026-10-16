@@ -88,6 +88,13 @@ static void *sw_scan_thread(void *arg)
 			usleep(SCAN_DWELL_MS * 1000 / 2);
 		}
 	}
+	/* back to the operating channel when associated, otherwise the radio stays on the last scanned channel and the link starves */
+	if (m->chanctx) {
+		wiphy_lock(wiphy);
+		m->hw.conf.chandef = m->chanctx->def;
+		m->ops->config(&m->hw, -1, IEEE80211_CONF_CHANGE_CHANNEL);
+		wiphy_unlock(wiphy);
+	}
 	if (m->ops->sw_scan_complete) { wiphy_lock(wiphy); m->ops->sw_scan_complete(&m->hw, m->vif); wiphy_unlock(wiphy); }
 	struct cfg80211_scan_info info = { .aborted = false };
 	ieee80211_scan_completed(&m->hw, &info);
