@@ -41,6 +41,10 @@ cat > "$R/Library/LaunchAgents/local.mt7601u.wifi.plist" <<PLIST
 </dict></plist>
 PLIST
 chmod +x "$ROOT/installer/scripts/"*
-pkgbuild --root "$R" --identifier local.mt7601u.pkg --version $VER --scripts "$ROOT/installer/scripts" --install-location / "$W/component.pkg"
+# never relocate the app bundle: otherwise the installer overwrites any other copy with the same bundle id (e.g. a build directory)
+pkgbuild --analyze --root "$R" "$W/component.plist" >/dev/null
+plutil -replace 0.BundleIsRelocatable -bool NO "$W/component.plist"
+plutil -replace 0.BundleIsVersionChecked -bool NO "$W/component.plist"
+pkgbuild --root "$R" --component-plist "$W/component.plist" --identifier local.mt7601u.pkg --version $VER --scripts "$ROOT/installer/scripts" --install-location / "$W/component.pkg"
 productbuild --distribution "$ROOT/installer/distribution.xml" --resources "$ROOT/installer/resources" --package-path "$W" "$ROOT/dist/MT7601U-WiFi-$VER.pkg"
 echo "built: $ROOT/dist/MT7601U-WiFi-$VER.pkg"
