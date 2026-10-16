@@ -4,6 +4,10 @@
 import Cocoa
 import Darwin
 
+// Japanese when the first preferred language is Japanese, English otherwise.
+let isJapanese = (Locale.preferredLanguages.first ?? "en").hasPrefix("ja")
+func L(_ ja: String, _ en: String) -> String { isJapanese ? ja : en }
+
 let socketPath = ProcessInfo.processInfo.environment["MT7601U_SOCK"] ?? "/var/run/mt7601ud.sock"
 
 // MARK: - control socket client
@@ -168,15 +172,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
             level = max(0.0, min(1.0, Double(status.signal + 90) / 50.0))
             tip = "\(status.ssid) (\(status.signal) dBm)"
         case "connecting", "scanning", "starting":
-            symbol = "wifi.exclamationmark"; tip = "接続中…"
+            symbol = "wifi.exclamationmark"; tip = L("接続中…", "Connecting…")
         case "daemon_down":
-            symbol = "exclamationmark.triangle"; tip = "デーモンが動いていません"
+            symbol = "exclamationmark.triangle"; tip = L("デーモンが動いていません", "Daemon is not running")
         case "no_adapter":
-            symbol = "wifi.slash"; tip = "アダプタが見つかりません"
+            symbol = "wifi.slash"; tip = L("アダプタが見つかりません", "Adapter not found")
         case "failed":
             symbol = "wifi.exclamationmark"; tip = status.error
         default:
-            symbol = "wifi.slash"; tip = "未接続"
+            symbol = "wifi.slash"; tip = L("未接続", "Not connected")
         }
         var image: NSImage?
         if symbol == "wifi" {
@@ -218,26 +222,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
         menu.removeAllItems()
         switch status.state {
         case "connected":
-            menu.addItem(disabled("\(status.ssid) に接続中"))
-            menu.addItem(disabled("IP \(status.ip)  ・  \(status.signal) dBm  ・  ch\(status.channel)"))
-            if !status.rxRate.isEmpty && status.rxRate != "-" { menu.addItem(disabled("受信 \(status.rxRate)")) }
+            menu.addItem(disabled(L("\(status.ssid) に接続中", "Connected to \(status.ssid)")))
+            menu.addItem(disabled("IP \(status.ip)  ·  \(status.signal) dBm  ·  ch\(status.channel)"))
+            if !status.rxRate.isEmpty && status.rxRate != "-" { menu.addItem(disabled(L("受信 \(status.rxRate)", "Receive rate: \(status.rxRate)"))) }
         case "connecting", "scanning", "starting":
-            menu.addItem(disabled(status.state == "starting" ? "起動中…" : "接続中…"))
+            menu.addItem(disabled(status.state == "starting" ? L("起動中…", "Starting…") : L("接続中…", "Connecting…")))
         case "failed":
-            menu.addItem(disabled("接続失敗: \(status.error)"))
+            menu.addItem(disabled(L("接続失敗: ", "Connection failed: ") + status.error))
         case "no_adapter":
-            menu.addItem(disabled("アダプタが見つかりません (USB を確認)"))
+            menu.addItem(disabled(L("アダプタが見つかりません (USB を確認)", "Adapter not found (check the USB port)")))
         case "daemon_down":
-            menu.addItem(disabled("デーモンが動いていません"))
+            menu.addItem(disabled(L("デーモンが動いていません", "The daemon is not running")))
             menu.addItem(disabled("sudo mt7601u-wifi start"))
         default:
-            menu.addItem(disabled("未接続"))
+            menu.addItem(disabled(L("未接続", "Not connected")))
         }
         menu.addItem(.separator())
 
         if status.state != "daemon_down" {
-            menu.addItem(disabled("ネットワーク"))
-            if networks.isEmpty { menu.addItem(disabled("  検索中…")) }
+            menu.addItem(disabled(L("ネットワーク", "Networks")))
+            if networks.isEmpty { menu.addItem(disabled(L("  検索中…", "  Searching…"))) }
             for n in networks.prefix(30) {
                 let current = status.state == "connected" && status.ssid == n.ssid
                 let bars = n.signal > -55 ? "▂▄▆█" : n.signal > -65 ? "▂▄▆" : n.signal > -75 ? "▂▄" : "▂"
@@ -253,21 +257,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
                 menu.addItem(m)
             }
             menu.addItem(.separator())
-            menu.addItem(action("再スキャン", #selector(rescan)))
+            menu.addItem(action(L("再スキャン", "Rescan"), #selector(rescan)))
             if status.state == "connected" || status.state == "connecting" {
-                menu.addItem(action("切断", #selector(disconnect)))
+                menu.addItem(action(L("切断", "Disconnect"), #selector(disconnect)))
             }
             if !status.known.isEmpty {
                 let sub = NSMenu()
                 for k in status.known { sub.addItem(action(k, #selector(forget(_:)), k)) }
-                let parent = NSMenuItem(title: "保存済みネットワークを削除", action: nil, keyEquivalent: "")
+                let parent = NSMenuItem(title: L("保存済みネットワークを削除", "Forget Saved Network"), action: nil, keyEquivalent: "")
                 parent.submenu = sub
                 menu.addItem(parent)
             }
         }
-        menu.addItem(action("ログを開く", #selector(openLog)))
+        menu.addItem(action(L("ログを開く", "Open Log"), #selector(openLog)))
         menu.addItem(.separator())
-        menu.addItem(NSMenuItem(title: "終了", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: L("終了", "Quit"), action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
     }
 
     // MARK: actions
@@ -304,17 +308,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func askPassword(_ ssid: String) {
         NSApp.activate(ignoringOtherApps: true)
         let alert = NSAlert()
-        alert.messageText = "「\(ssid)」のパスワード"
-        alert.informativeText = "WPA2 パスフレーズ (8〜63 文字) を入力してください。"
-        alert.addButton(withTitle: "接続")
-        alert.addButton(withTitle: "キャンセル")
+        alert.messageText = L("「\(ssid)」のパスワード", "Password for “\(ssid)”")
+        alert.informativeText = L("WPA2 パスフレーズ (8〜63 文字) を入力してください。", "Enter the WPA2 passphrase (8–63 characters).")
+        alert.addButton(withTitle: L("接続", "Connect"))
+        alert.addButton(withTitle: L("キャンセル", "Cancel"))
         let field = NSSecureTextField(frame: NSRect(x: 0, y: 0, width: 260, height: 24))
         alert.accessoryView = field
         alert.window.initialFirstResponder = field
         if alert.runModal() == .alertFirstButtonReturn {
             let psk = field.stringValue
             if psk.utf8.count < 8 || psk.utf8.count > 63 {
-                showFailure("パスワードは 8〜63 文字で入力してください")
+                showFailure(L("パスワードは 8〜63 文字で入力してください", "The passphrase must be 8–63 characters long."))
                 return
             }
             connect(ssid, psk: psk)
@@ -342,14 +346,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSMenuDelegate {
     func showFailure(_ message: String) {
         let text: String
         switch message {
-        case let m where m.contains("wrong password"): text = "パスワードが違うか、ハンドシェイクに失敗しました。"
-        case let m where m.contains("not found"): text = "ネットワークが見つかりません。"
-        case let m where m.contains("DHCP"): text = "IP アドレスを取得できませんでした (DHCP)。"
+        case let m where m.contains("wrong password"): text = L("パスワードが違うか、ハンドシェイクに失敗しました。", "Wrong password, or the handshake failed.")
+        case let m where m.contains("not found"): text = L("ネットワークが見つかりません。", "The network was not found.")
+        case let m where m.contains("DHCP"): text = L("IP アドレスを取得できませんでした (DHCP)。", "Could not get an IP address (DHCP).")
         default: text = message
         }
         NSApp.activate(ignoringOtherApps: true)
         let alert = NSAlert()
-        alert.messageText = "Wi-Fi に接続できません"
+        alert.messageText = L("Wi-Fi に接続できません", "Cannot connect to Wi-Fi")
         alert.informativeText = text
         alert.runModal()
     }

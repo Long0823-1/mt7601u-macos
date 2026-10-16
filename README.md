@@ -1,5 +1,7 @@
 # MT7601U Wi-Fi for macOS (experimental)
 
+日本語 | [English](README.en.md)
+
 MediaTek **MT7601U** (USB `148f:7601`, 802.11n 2.4 GHz) 用の macOS ユーザー空間 Wi-Fi ドライバです。
 Linux の `mt7601u` ドライバを無改造に近い形で、Linux カーネル API 互換層の上で動かします
 ([rtw89-macos](https://github.com/Long0823-1/rtw89-macos) と同じ方式)。
