@@ -59,3 +59,9 @@ mt7601u-wifi disconnect | forget "SSID" | log | start | stop | restart
 ## ライセンス
 
 GPL-2.0 (`COPYING`)。第三者コードは `THIRD_PARTY.md` を参照。
+
+## Support / 開発支援
+
+開発・保守活動をKo-fiで支援できます。
+
+[Ko-fiで支援する](https://ko-fi.com/long0823)
