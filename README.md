@@ -65,3 +65,9 @@ GPL-2.0 (`COPYING`)。第三者コードは `THIRD_PARTY.md` を参照。
 開発・保守活動をKo-fiで支援できます。
 
 [Ko-fiで支援する](https://ko-fi.com/long0823)
+
+## 関連記事
+
+ブログ「knowledge-storage.info」で関連する解説記事を公開しています。
+
+- [macOS(Hackintosh)で USB Wi-Fi 子機「MT7601U」を使えるようにした](https://knowledge-storage.info/2026/10/16/macos-hackintosh-usb-wi-fi-mt7601u/)
